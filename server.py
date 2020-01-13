@@ -30,7 +30,14 @@ import socketserver
 class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
+        print(self.request)
         self.data = self.request.recv(1024).strip()
+
+        # the first two things are always the request method and the file being requested
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages
+        http_method, request_target = self.data.split()[0:2]
+        
+        print(http_method, request_target)
         print ("Got a request of: %s\n" % self.data)
         self.request.sendall(bytearray("OK",'utf-8'))
 
