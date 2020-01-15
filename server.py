@@ -28,7 +28,7 @@ import socketserver
 
 
 class MyWebServer(socketserver.BaseRequestHandler):
-    
+
     def handle(self):
         self.data = self.request.recv(1024).strip().decode()
 
@@ -43,12 +43,13 @@ class MyWebServer(socketserver.BaseRequestHandler):
             self.sendResponse()
             # self.request.sendall(bytearray("OK",'utf-8'))
         else: 
-            # invalid method - return 404
-            self.request.sendall(bytearray("404", 'utf-8'))
+            # invalid method - return 405
+            self.request.sendall(bytearray("405", 'utf-8'))
 
     def sendResponse(self):
-        body = "<html><body><p1>text</p1></body></html>"
-
+        body = ""
+        with open("www/index.html", "r") as f:
+            body = f.read();
         response = "HTTP/1.1 200 OK\n"
         response += "Content-Type: text/html\n"
         response += "Connection: Closed\n"
