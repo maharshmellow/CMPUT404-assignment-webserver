@@ -30,16 +30,32 @@ import socketserver
 class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
-        print(self.request)
-        self.data = self.request.recv(1024).strip()
+        self.data = self.request.recv(1024).strip().decode()
 
-        # the first two things are always the request method and the file being requested
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages
         http_method, request_target = self.data.split()[0:2]
-        
         print(http_method, request_target)
-        print ("Got a request of: %s\n" % self.data)
-        self.request.sendall(bytearray("OK",'utf-8'))
+
+        if http_method == "GET":
+            # do more 
+            print(http_method, request_target)
+            print ("Got a request of: %s\n" % self.data)
+            self.sendResponse()
+            # self.request.sendall(bytearray("OK",'utf-8'))
+        else: 
+            # invalid method - return 404
+            self.request.sendall(bytearray("404", 'utf-8'))
+
+    def sendResponse(self):
+        body = "<html><body><p1>text</p1></body></html>"
+
+        response = "HTTP/1.1 200 OK\n"
+        response += "Content-Type: text/html\n"
+        response += "Connection: Closed\n"
+        response += "Content-Length: " + str(len(body.encode("utf-8"))) + "\n\n"
+        response += body
+
+        self.request.sendall(bytearray(response, 'utf-8'))
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
