@@ -24,3 +24,17 @@ examples thus some of the code is Copyright © 2001-2013 Python
 Software Foundation; All Rights Reserved under the PSF license (GPL
 compatible) http://docs.python.org/2/library/socketserver.html
 
+References
+==========
+
+### Mozilla
+- https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages
+- https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+
+### StackOverflow
+- By kabanus, https://stackoverflow.com/questions/45188708/how-to-prevent-directory-traversal-attack-from-python-code
+- By nosklo, https://stackoverflow.com/questions/541390/extracting-extension-from-filename-in-python
+
+### Tutorials Point
+- https://www.tutorialspoint.com/http/http_responses.htm
+- https://www.tutorialspoint.com/http/http_requests.htm
