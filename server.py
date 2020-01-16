@@ -72,25 +72,30 @@ class MyWebServer(socketserver.BaseRequestHandler):
             with open(path, "r") as f:
                 data = f.read()
 
-            self.sendResponse(200, body=data)
+            # By nosklo, https://stackoverflow.com/questions/541390/extracting-extension-from-filename-in-python
+            file_extension = os.path.splitext(path)[1]
+            if not file_extension:
+                file_extension = "html"
+            else:
+                file_extension = file_extension.replace(".", "")
+                
+            self.sendResponse(200, file_contents=data, file_type=file_extension)
         else:
             self.sendResponse(404)
 
 
+    def sendResponse(self, status_code, file_contents=None, file_type=None):
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+        status_text = {200: "OK", 301: "Moved Permanently", 404: "Not Found"}
 
-    def sendResponse(self, status_code, body=None):
-        status_codes = {200: "OK", 301: "Moved Permanently", 404: "Resource Not Found"}
-
-        # body = ""
-        # with open("www/index.html", "r") as f:
-        #     body = f.read();
-        response = "HTTP/1.1 {} {}\r\n".format(status_code, status_codes[status_code])
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages
+        response = "HTTP/1.1 {} {}\r\n".format(status_code, status_text[status_code])
         response += "Connection: Closed\r\n"
 
-        if body:
-            response += "Content-Type: text/html\r\n"
-            response += "Content-Length: " + str(len(body.encode("utf-8"))) + "\r\n\n"
-            response += body
+        if file_contents:
+            response += "Content-Type: text/{}\r\n".format(file_type)
+            response += "Content-Length: " + str(len(file_contents.encode("utf-8"))) + "\r\n\n"
+            response += file_contents
 
         self.request.sendall(bytearray(response, 'utf-8'))
 
