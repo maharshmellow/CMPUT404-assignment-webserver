@@ -36,31 +36,25 @@ class MyWebServer(socketserver.BaseRequestHandler):
         http_method, request_target = self.data.split()[0:2]
 
         if http_method == "GET":
-            print ("\n\nGot a request of: %s" % self.data)
+            print("\n\nGot a request of: %s" % self.data)
             print(http_method, request_target)
 
             self.processRequest(request_target)
-            # self.sendResponse()
         else: 
-            # invalid method - return 405
-            self.request.sendall(bytearray("405", 'utf-8'))
+            # invalid method
+            self.sendResponse(405)
 
     def processRequest(self, request_target):
         path = "www" + request_target
         
         if os.path.isdir(path):
-            print("isdir", path)
             if (path.endswith("/")):
                 path = path + "index.html"
-                print(path)
                 self.sendFile(path)
             else:
-                # send a 301 
-                print("301")
-                self.sendResponse(301)
-
+                correct_location = request_target + "/"
+                self.sendResponse(301, redirect_location=correct_location)
         elif os.path.isfile(path):
-            print("file", path)
             self.sendFile(path)
         else:
             print("Doesn't Exist")
@@ -84,15 +78,17 @@ class MyWebServer(socketserver.BaseRequestHandler):
             self.sendResponse(404)
 
 
-    def sendResponse(self, status_code, file_contents=None, file_type=None):
+    def sendResponse(self, status_code, file_contents=None, file_type=None, redirect_location=None):
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
-        status_text = {200: "OK", 301: "Moved Permanently", 404: "Not Found"}
+        status_text = {200: "OK", 301: "Moved Permanently", 404: "Not Found", 405: "Method Not Allowed"}
 
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages
         response = "HTTP/1.1 {} {}\r\n".format(status_code, status_text[status_code])
         response += "Connection: Closed\r\n"
 
-        if file_contents:
+        if redirect_location:
+            response += "Location: {}\r\n".format(redirect_location)
+        elif file_contents:
             response += "Content-Type: text/{}\r\n".format(file_type)
             response += "Content-Length: " + str(len(file_contents.encode("utf-8"))) + "\r\n\n"
             response += file_contents
