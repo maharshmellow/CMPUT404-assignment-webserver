@@ -26,7 +26,6 @@ import os
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
-
 class MyWebServer(socketserver.BaseRequestHandler):
 
     def handle(self):
@@ -43,13 +42,16 @@ class MyWebServer(socketserver.BaseRequestHandler):
             self.sendResponse(405)
 
     def processRequest(self, request_target):
-        path = "www" + request_target
+        root_dir = "www"
+        absolute_root_dir = os.path.realpath(root_dir)
+
+        path = root_dir + request_target
         
         # By kabanus, https://stackoverflow.com/questions/45188708/how-to-prevent-directory-traversal-attack-from-python-code
-        # if the common prefix between the absolute path of the "path" and "www" is not 
-        # the same as the absolute path of "www" then this path is trying to traverse outside 
-        # the allowed directory (www)
-        if os.path.commonprefix((os.path.realpath(path), os.path.realpath("www"))) != os.path.realpath("www"):
+        if os.path.commonprefix((os.path.realpath(path), absolute_root_dir)) != absolute_root_dir:
+            # if the common prefix between the absolute path of the "path" and "www" is not 
+            # the same as the absolute path of "www" then this path is trying to traverse outside 
+            # the allowed directory (www)
             self.sendResponse(404)
         elif os.path.isdir(path):
             if (path.endswith("/")):
@@ -59,10 +61,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 correct_location = request_target + "/"
                 self.sendResponse(301, redirect_location=correct_location)
         elif os.path.isfile(path):
-            print("file", os.path.realpath(path), os.path.realpath("www"))
             self.sendFile(path)
         else:
-            print("Doesn't Exist")
             self.sendResponse(404)
 
     def sendFile(self, path):
@@ -97,7 +97,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
             response += "Content-Length: " + str(len(file_contents.encode("utf-8"))) + "\r\n\n"
             response += file_contents
 
-        print("Responding with:", response)
         self.request.sendall(bytearray(response, 'utf-8'))
 
 
