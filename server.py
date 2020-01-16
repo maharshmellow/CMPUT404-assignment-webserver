@@ -1,7 +1,7 @@
 #  coding: utf-8 
 import socketserver
-
-# Copyright 2013 Abram Hindle, Eddie Antonio Santos
+import os
+# Copyright 2013 Maharsh Patel, Abram Hindle, Eddie Antonio Santos
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,23 +37,40 @@ class MyWebServer(socketserver.BaseRequestHandler):
         print(http_method, request_target)
 
         if http_method == "GET":
-            # do more 
-            print(http_method, request_target)
             print ("Got a request of: %s\n" % self.data)
+
+            self.validateRequest(request_target)
             self.sendResponse()
             # self.request.sendall(bytearray("OK",'utf-8'))
         else: 
             # invalid method - return 405
             self.request.sendall(bytearray("405", 'utf-8'))
 
+    def validateRequest(self, request_target):
+        path = "www" + request_target
+        
+        if os.path.isdir(path):
+            print("isdir", path)
+            if (path.endswith("/")):
+                path = path + "index.html"
+                print(path)
+            else:
+                # send a 301 
+                print("301")
+        elif os.path.isfile(path):
+            print("file", path)
+        else:
+            print("Doesnt Exist")
+
+
     def sendResponse(self):
         body = ""
         with open("www/index.html", "r") as f:
             body = f.read();
-        response = "HTTP/1.1 200 OK\n"
-        response += "Content-Type: text/html\n"
-        response += "Connection: Closed\n"
-        response += "Content-Length: " + str(len(body.encode("utf-8"))) + "\n\n"
+        response = "HTTP/1.1 200 OK\r\n"
+        response += "Content-Type: text/html\r\n"
+        response += "Connection: Closed\r\n"
+        response += "Content-Length: " + str(len(body.encode("utf-8"))) + "\r\n\n"
         response += body
 
         self.request.sendall(bytearray(response, 'utf-8'))
