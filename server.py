@@ -37,8 +37,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         if http_method == "GET":
             print("\n\nGot a request of: %s" % self.data)
-            print(http_method, request_target)
-
             self.processRequest(request_target)
         else: 
             # invalid method
@@ -47,7 +45,13 @@ class MyWebServer(socketserver.BaseRequestHandler):
     def processRequest(self, request_target):
         path = "www" + request_target
         
-        if os.path.isdir(path):
+        # By kabanus, https://stackoverflow.com/questions/45188708/how-to-prevent-directory-traversal-attack-from-python-code
+        # if the common prefix between the absolute path of the "path" and "www" is not 
+        # the same as the absolute path of "www" then this path is trying to traverse outside 
+        # the allowed directory (www)
+        if os.path.commonprefix((os.path.realpath(path), os.path.realpath("www"))) != os.path.realpath("www"):
+            self.sendResponse(404)
+        elif os.path.isdir(path):
             if (path.endswith("/")):
                 path = path + "index.html"
                 self.sendFile(path)
@@ -55,6 +59,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 correct_location = request_target + "/"
                 self.sendResponse(301, redirect_location=correct_location)
         elif os.path.isfile(path):
+            print("file", os.path.realpath(path), os.path.realpath("www"))
             self.sendFile(path)
         else:
             print("Doesn't Exist")
@@ -77,7 +82,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
         else:
             self.sendResponse(404)
 
-
     def sendResponse(self, status_code, file_contents=None, file_type=None, redirect_location=None):
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
         status_text = {200: "OK", 301: "Moved Permanently", 404: "Not Found", 405: "Method Not Allowed"}
@@ -93,7 +97,9 @@ class MyWebServer(socketserver.BaseRequestHandler):
             response += "Content-Length: " + str(len(file_contents.encode("utf-8"))) + "\r\n\n"
             response += file_contents
 
+        print("Responding with:", response)
         self.request.sendall(bytearray(response, 'utf-8'))
+
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
