@@ -34,19 +34,18 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages
         http_method, request_target = self.data.split()[0:2]
-        print(http_method, request_target)
 
         if http_method == "GET":
-            print ("Got a request of: %s\n" % self.data)
+            print ("\n\nGot a request of: %s" % self.data)
+            print(http_method, request_target)
 
-            self.validateRequest(request_target)
-            self.sendResponse()
-            # self.request.sendall(bytearray("OK",'utf-8'))
+            self.processRequest(request_target)
+            # self.sendResponse()
         else: 
             # invalid method - return 405
             self.request.sendall(bytearray("405", 'utf-8'))
 
-    def validateRequest(self, request_target):
+    def processRequest(self, request_target):
         path = "www" + request_target
         
         if os.path.isdir(path):
@@ -54,24 +53,44 @@ class MyWebServer(socketserver.BaseRequestHandler):
             if (path.endswith("/")):
                 path = path + "index.html"
                 print(path)
+                self.sendFile(path)
             else:
                 # send a 301 
                 print("301")
+                self.sendResponse(301)
+
         elif os.path.isfile(path):
             print("file", path)
+            self.sendFile(path)
         else:
-            print("Doesnt Exist")
+            print("Doesn't Exist")
+            self.sendResponse(404)
+
+    def sendFile(self, path):
+        if os.path.isfile(path):
+            data = ""
+            with open(path, "r") as f:
+                data = f.read()
+
+            self.sendResponse(200, body=data)
+        else:
+            self.sendResponse(404)
 
 
-    def sendResponse(self):
-        body = ""
-        with open("www/index.html", "r") as f:
-            body = f.read();
-        response = "HTTP/1.1 200 OK\r\n"
-        response += "Content-Type: text/html\r\n"
+
+    def sendResponse(self, status_code, body=None):
+        status_codes = {200: "OK", 301: "Moved Permanently", 404: "Resource Not Found"}
+
+        # body = ""
+        # with open("www/index.html", "r") as f:
+        #     body = f.read();
+        response = "HTTP/1.1 {} {}\r\n".format(status_code, status_codes[status_code])
         response += "Connection: Closed\r\n"
-        response += "Content-Length: " + str(len(body.encode("utf-8"))) + "\r\n\n"
-        response += body
+
+        if body:
+            response += "Content-Type: text/html\r\n"
+            response += "Content-Length: " + str(len(body.encode("utf-8"))) + "\r\n\n"
+            response += body
 
         self.request.sendall(bytearray(response, 'utf-8'))
 
