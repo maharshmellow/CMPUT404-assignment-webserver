@@ -30,6 +30,7 @@ References
 ### Mozilla
 - https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages
 - https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+- https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Connection
 
 ### StackOverflow
 - By kabanus, https://stackoverflow.com/questions/45188708/how-to-prevent-directory-traversal-attack-from-python-code

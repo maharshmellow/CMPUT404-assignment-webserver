@@ -88,7 +88,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages
         response = "HTTP/1.1 {} {}\r\n".format(status_code, status_text[status_code])
-        response += "Connection: Closed\r\n"
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Connection
+        response += "Connection: close\r\n"
 
         if redirect_location:
             response += "Location: {}\r\n".format(redirect_location)
